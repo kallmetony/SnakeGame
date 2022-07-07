@@ -1,3 +1,5 @@
+package src;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -8,21 +10,22 @@ import java.util.Random;
 
 public class GamePanel extends JPanel implements ActionListener {
 
-    static final int SCREEN_WIDTH = 600;
-    static final int SCREEN_HEIGHT = 600;
-    static final int UNIT_SIZE = 25;
-    static final int GAME_UNITS = (SCREEN_WIDTH*SCREEN_HEIGHT)/UNIT_SIZE;
-    static final int DELAY = 75;
-    final int x[] = new int[GAME_UNITS];
-    final int y[] = new int[GAME_UNITS];
-    int bodyParts = 6;
-    int fruitsEaten;
-    int fruitX;
-    int fruitY;
-    char direction = 'R';
-    boolean running = false;
-    Timer timer;
-    Random random;
+    private static final int SCREEN_WIDTH = 600;
+    private static final int SCREEN_HEIGHT = 600;
+    private static final int UNIT_SIZE = 25;
+    private static final int GAME_UNITS = (SCREEN_WIDTH*SCREEN_HEIGHT)/UNIT_SIZE;
+    private static final int DELAY = 75;
+    private final int x[] = new int[GAME_UNITS];
+    private final int y[] = new int[GAME_UNITS];
+    private int bodyParts = 6;
+    private int fruitsEaten;
+    private int fruitX;
+    private int fruitY;
+    private char direction = 'R';
+    private boolean running = false;
+    private boolean isColored = true;
+    private Timer timer;
+    private Random random;
 
     GamePanel(){
         random = new Random();
@@ -34,17 +37,20 @@ public class GamePanel extends JPanel implements ActionListener {
 
         startGame();
     }
+
     public void startGame() {
         newFruit();
         running = true;
         timer = new Timer(DELAY, this);
         timer.start();
     }
+
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         draw(g);
         score(g);
     }
+
     public void draw(Graphics g) {
         //Draws vertical and horizontal lines
         if (running) {
@@ -61,11 +67,10 @@ public class GamePanel extends JPanel implements ActionListener {
                     g.setColor(new Color(63, 112, 77));
                     g.fillRect(x[i], y[i], UNIT_SIZE, UNIT_SIZE);
                 } else {
-                    //Default green snake
-                    //g.setColor(new Color(00, 64, 00));
-
-                    //Custom random colored snake
-                    g.setColor(new Color(random.nextInt(255), random.nextInt(255), random.nextInt(255), 25 + random.nextInt(100)));
+                    if (isColored)
+                        g.setColor(new Color(random.nextInt(255), random.nextInt(255), random.nextInt(255), 25 + random.nextInt(100)));
+                    else
+                        g.setColor(new Color(00, 64, 00));
 
                     //Colors snake
                     g.fillRect(x[i], y[i], UNIT_SIZE, UNIT_SIZE);
@@ -75,25 +80,35 @@ public class GamePanel extends JPanel implements ActionListener {
             gameOver(g);
         }
     }
+
     public void move() {
-        for (int i = bodyParts; i>0;i--) {
+        for (int i = bodyParts; i > 0;i--) {
             x[i] = x[i - 1];
             y[i] = y[i - 1];
         }
 
         switch (direction) {
-            case 'U' -> y[0] = y[0] - UNIT_SIZE;
-            case 'R' -> x[0] = x[0] + UNIT_SIZE;
-            case 'D' -> y[0] = y[0] + UNIT_SIZE;
-            case 'L' -> x[0] = x[0] - UNIT_SIZE;
+            case 'U':
+                y[0] = y[0] - UNIT_SIZE;
+                break;
+            case 'R':
+                x[0] = x[0] + UNIT_SIZE;
+                break;
+            case 'D':
+                y[0] = y[0] + UNIT_SIZE;
+                break;
+            case 'L':
+                x[0] = x[0] - UNIT_SIZE;
+                break;
         }
-
     }
+
     public void newFruit() {
         fruitX = random.nextInt((int) (SCREEN_WIDTH/UNIT_SIZE))*UNIT_SIZE;
         fruitY = random.nextInt((int) (SCREEN_HEIGHT/UNIT_SIZE))*UNIT_SIZE;
 
     }
+
     public void checkFruit() {
         if (x[0] == fruitX && y[0] == fruitY) {
             bodyParts++;
@@ -101,9 +116,10 @@ public class GamePanel extends JPanel implements ActionListener {
             newFruit();
         }
     }
+
     public void checkCollisions() {
         // Checks if head touches body
-        for (int i = bodyParts; i>0; i--) {
+        for (int i = bodyParts; i > 0; i--) {
             if((x[0] == x[i]) && (y[0] == y[i])) {
                 running = false;
             }
@@ -123,12 +139,14 @@ public class GamePanel extends JPanel implements ActionListener {
             timer.stop();
         }
     }
+
     public void score(Graphics g) {
         g.setColor(new Color(00, 64, 00));
         g.setFont(new Font("Arial", Font.BOLD, 35));
         FontMetrics metrics = getFontMetrics(g.getFont());
         g.drawString("Score " + fruitsEaten, (SCREEN_WIDTH - metrics.stringWidth("Score " + fruitsEaten))/2, g.getFont().getSize());
     }
+
     public void gameOver(Graphics g) {
         //GameOver Screen
         g.setColor(new Color(188, 99, 79));
@@ -136,6 +154,7 @@ public class GamePanel extends JPanel implements ActionListener {
         FontMetrics metrics = getFontMetrics(g.getFont());
         g.drawString("GameOver", (SCREEN_WIDTH - metrics.stringWidth("GameOver"))/2, SCREEN_HEIGHT/2);
     }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         if (running) {
@@ -145,6 +164,7 @@ public class GamePanel extends JPanel implements ActionListener {
         }
         repaint();
     }
+
     public class GameKeyAdapter extends KeyAdapter {
 
         @Override
@@ -169,6 +189,26 @@ public class GamePanel extends JPanel implements ActionListener {
                 case KeyEvent.VK_DOWN:
                     if (direction != 'U') {
                         direction = 'D';
+                    }
+                    break;
+                case KeyEvent.VK_W:
+                    if (direction != 'D') {
+                        direction = 'U';
+                    }
+                    break;
+                case KeyEvent.VK_A:
+                    if (direction != 'R') {
+                        direction = 'L';
+                    }
+                    break;
+                case KeyEvent.VK_S:
+                    if (direction != 'U') {
+                        direction = 'D';
+                    }
+                    break;
+                case KeyEvent.VK_D:
+                    if (direction != 'L') {
+                        direction = 'R';
                     }
                     break;
             }
